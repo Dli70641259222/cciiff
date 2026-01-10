@@ -16,9 +16,58 @@ document.addEventListener('DOMContentLoaded', function() {
   checkLoginStatus();
   setDefaultWeekStart();
   setLast2Weeks(); // Set default 2-week period
+  setLast2WeeksCard(); // Set default for stats card
   loadData();
   updateStatistics();
 });
+
+// Set last 2 weeks for stats card
+function setLast2WeeksCard() {
+  const today = new Date();
+  
+  // Get last Monday (start of current or last week)
+  const lastMonday = new Date(today);
+  const day = lastMonday.getDay();
+  const diff = lastMonday.getDate() - day + (day === 0 ? -6 : 1);
+  lastMonday.setDate(diff - 7); // Go back one week to get last Monday
+  
+  document.getElementById('twoWeekStartCard').value = lastMonday.toISOString().split('T')[0];
+  calculate2WeekStatsCard();
+}
+
+// Calculate 2-week statistics for the card
+function calculate2WeekStatsCard() {
+  const startDateStr = document.getElementById('twoWeekStartCard').value;
+  
+  if (!startDateStr) {
+    return;
+  }
+  
+  const startDate = new Date(startDateStr + 'T00:00:00');
+  
+  // Calculate end date (13 days later for 2 full weeks including both weekends)
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 13);
+  
+  // Filter entries within 2-week period
+  const startDateOnly = startDateStr;
+  const endDateStr = endDate.toISOString().split('T')[0];
+  
+  const twoWeekEntries = workEntries.filter(entry => {
+    return entry.date >= startDateOnly && entry.date <= endDateStr;
+  });
+  
+  // Calculate total hours
+  const totalHours = twoWeekEntries.reduce((sum, entry) => sum + entry.hours, 0);
+  
+  // Update display
+  document.getElementById('total2WeekHoursCard').textContent = totalHours.toFixed(2);
+  
+  // Update date range display
+  const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const endFormatted = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  document.getElementById('dateRangeDisplay').textContent = `${startFormatted} - ${endFormatted}`;
+}
 
 // Set last 2 weeks as default
 function setLast2Weeks() {
@@ -259,6 +308,7 @@ function addWeeklyEntry() {
   loadData();
   updateStatistics();
   calculate2WeekStats(); // Update 2-week view
+  calculate2WeekStatsCard(); // Update stats card
   
   // Clear form
   clearWeekForm();
@@ -404,6 +454,7 @@ function deleteEntry(id) {
     loadData();
     updateStatistics();
     calculate2WeekStats(); // Update 2-week view
+    calculate2WeekStatsCard(); // Update stats card
     alert('✅ Entry deleted!');
   }
 }
@@ -500,6 +551,7 @@ function clearAllData() {
       loadData();
       updateStatistics();
       calculate2WeekStats(); // Update 2-week view
+      calculate2WeekStatsCard(); // Update stats card
       alert('✅ All data cleared!');
     }
   }

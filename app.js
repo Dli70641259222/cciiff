@@ -1,66 +1,175 @@
-// CIF Canada Work Time Tracker - JavaScript
+// CIF Canada Work Time Tracker - JavaScript with Password Protection
+
+// Password Configuration
+const ADMIN_PASSWORD = '0000';
+let isLoggedIn = localStorage.getItem('cifAdminLoggedIn') === 'true';
 
 // Initialize data from localStorage
 let workEntries = JSON.parse(localStorage.getItem('cifWorkEntries')) || [];
+let selectedEmployee = null;
 
-// Set today's date by default
+// Days of the week
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('workDate').value = today;
+  checkLoginStatus();
+  setDefaultWeekStart();
   loadData();
   updateStatistics();
 });
 
-// Toggle Admin Panel
-function toggleAdminPanel() {
-  const panel = document.getElementById('adminPanel');
-  panel.classList.toggle('hidden');
+// Check login status
+function checkLoginStatus() {
+  if (isLoggedIn) {
+    document.getElementById('logoutBtn').classList.remove('hidden');
+  }
 }
 
-// Add new work entry
-function addEntry() {
-  const employee = document.getElementById('employeeName').value;
-  const date = document.getElementById('workDate').value;
-  const startTime = document.getElementById('startTime').value;
-  const endTime = document.getElementById('endTime').value;
-  const pause = parseInt(document.getElementById('pauseTime').value) || 0;
+// Toggle Admin Panel with Password
+function toggleAdminPanel() {
+  const panel = document.getElementById('adminPanel');
+  
+  if (panel.classList.contains('hidden')) {
+    // Try to open - check password
+    if (!isLoggedIn) {
+      const password = prompt('🔐 Enter Admin Password:');
+      if (password === ADMIN_PASSWORD) {
+        isLoggedIn = true;
+        localStorage.setItem('cifAdminLoggedIn', 'true');
+        panel.classList.remove('hidden');
+        document.getElementById('logoutBtn').classList.remove('hidden');
+        alert('✅ Access granted!');
+      } else {
+        alert('❌ Wrong password!');
+      }
+    } else {
+      panel.classList.remove('hidden');
+    }
+  } else {
+    // Close panel
+    panel.classList.add('hidden');
+  }
+}
+
+// Logout
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    isLoggedIn = false;
+    localStorage.removeItem('cifAdminLoggedIn');
+    document.getElementById('adminPanel').classList.add('hidden');
+    document.getElementById('logoutBtn').classList.add('hidden');
+    alert('👋 Logged out successfully!');
+  }
+}
+
+// Select Employee
+function selectEmployee(name) {
+  selectedEmployee = name;
+  
+  // Update UI - highlight selected button
+  document.querySelectorAll('.employee-btn').forEach(btn => {
+    if (btn.dataset.employee === name) {
+      btn.classList.add('bg-blue-500', 'text-white', 'border-blue-700');
+      btn.classList.remove('hover:bg-blue-50');
+    } else {
+      btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-700');
+      btn.classList.add('hover:bg-blue-50');
+    }
+  });
+  
+  // Show selected employee
+  document.getElementById('selectedEmployeeDisplay').classList.remove('hidden');
+  document.getElementById('selectedEmployeeName').textContent = name;
+  document.getElementById('saveEmployeeName').textContent = name;
+  
+  // Show weekly time entry
+  document.getElementById('weeklyTimeEntry').classList.remove('hidden');
+}
+
+// Set default week start (current Monday)
+function setDefaultWeekStart() {
+  const today = new Date();
+  const day = today.getDay();
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+  const monday = new Date(today.setDate(diff));
+  
+  document.getElementById('weekStartDate').value = monday.toISOString().split('T')[0];
+  updateWeekDates();
+}
+
+// Update week dates based on selected Monday
+function updateWeekDates() {
+  const startDate = new Date(document.getElementById('weekStartDate').value + 'T00:00:00');
+  
+  daysOfWeek.forEach((day, index) => {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + index);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    document.getElementById(`date${day}`).textContent = dateStr;
+  });
+}
+
+// Add weekly entry for selected employee
+function addWeeklyEntry() {
+  if (!selectedEmployee) {
+    alert('⚠️ Please select an employee first!');
+    return;
+  }
+
+  const startDate = new Date(document.getElementById('weekStartDate').value + 'T00:00:00');
   const project = document.getElementById('projectName').value;
   const notes = document.getElementById('notes').value;
-
-  // Validation
-  if (!date || !startTime || !endTime) {
-    alert('⚠️ Please fill in Date, Start Time, and End Time!');
-    return;
-  }
-
-  // Calculate hours worked
-  const start = new Date(`2000-01-01T${startTime}`);
-  const end = new Date(`2000-01-01T${endTime}`);
-  const diffMinutes = (end - start) / 1000 / 60 - pause;
-  const hours = (diffMinutes / 60).toFixed(2);
-
-  if (diffMinutes < 0) {
-    alert('⚠️ End time must be after start time!');
-    return;
-  }
-
-  // Create entry
-  const entry = {
-    id: Date.now(),
-    employee: employee,
-    date: date,
-    startTime: startTime,
-    endTime: endTime,
-    pause: pause,
-    hours: parseFloat(hours),
-    project: project,
-    notes: notes,
-    timestamp: new Date().toISOString()
-  };
-
-  // Add to array
-  workEntries.push(entry);
   
+  let entriesAdded = 0;
+  let totalHours = 0;
+
+  // Process each day
+  daysOfWeek.forEach((day, index) => {
+    const startTime = document.getElementById(`start${day}`).value;
+    const endTime = document.getElementById(`end${day}`).value;
+    const pause = parseInt(document.getElementById(`pause${day}`).value) || 0;
+
+    // Only add if start and end times are provided
+    if (startTime && endTime) {
+      // Calculate date for this day
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + index);
+      const dateStr = date.toISOString().split('T')[0];
+
+      // Calculate hours
+      const start = new Date(`2000-01-01T${startTime}`);
+      const end = new Date(`2000-01-01T${endTime}`);
+      const diffMinutes = (end - start) / 1000 / 60 - pause;
+      const hours = (diffMinutes / 60).toFixed(2);
+
+      if (diffMinutes > 0) {
+        // Create entry
+        const entry = {
+          id: Date.now() + index, // Unique ID for each day
+          employee: selectedEmployee,
+          date: dateStr,
+          startTime: startTime,
+          endTime: endTime,
+          pause: pause,
+          hours: parseFloat(hours),
+          project: project,
+          notes: notes,
+          timestamp: new Date().toISOString()
+        };
+
+        workEntries.push(entry);
+        entriesAdded++;
+        totalHours += parseFloat(hours);
+      }
+    }
+  });
+
+  if (entriesAdded === 0) {
+    alert('⚠️ Please enter at least one day with start and end times!');
+    return;
+  }
+
   // Save to localStorage
   saveData();
   
@@ -69,9 +178,23 @@ function addEntry() {
   updateStatistics();
   
   // Clear form
-  clearForm();
+  clearWeekForm();
   
-  alert('✅ Entry added successfully!');
+  alert(`✅ ${entriesAdded} entries added for ${selectedEmployee}!\nTotal hours: ${totalHours.toFixed(2)}h`);
+}
+
+// Clear week form
+function clearWeekForm() {
+  daysOfWeek.forEach(day => {
+    document.getElementById(`start${day}`).value = '';
+    document.getElementById(`end${day}`).value = '';
+    document.getElementById(`pause${day}`).value = '';
+  });
+  document.getElementById('projectName').value = '';
+  document.getElementById('notes').value = '';
+  
+  // Keep employee selected
+  // setDefaultWeekStart(); // Uncomment if you want to reset date too
 }
 
 // Save data to localStorage
@@ -187,6 +310,11 @@ function resetFilters() {
 
 // Delete entry
 function deleteEntry(id) {
+  if (!isLoggedIn) {
+    alert('⚠️ Please login as admin to delete entries!');
+    return;
+  }
+  
   if (confirm('Are you sure you want to delete this entry?')) {
     workEntries = workEntries.filter(e => e.id !== id);
     saveData();
@@ -194,15 +322,6 @@ function deleteEntry(id) {
     updateStatistics();
     alert('✅ Entry deleted!');
   }
-}
-
-// Clear form
-function clearForm() {
-  document.getElementById('startTime').value = '';
-  document.getElementById('endTime').value = '';
-  document.getElementById('pauseTime').value = '';
-  document.getElementById('projectName').value = '';
-  document.getElementById('notes').value = '';
 }
 
 // Update statistics
@@ -262,12 +381,17 @@ function updateEmployeeSummary(data = workEntries) {
 // Format date
 function formatDate(dateStr) {
   const date = new Date(dateStr + 'T00:00:00');
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
+  const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' };
   return date.toLocaleDateString('en-US', options);
 }
 
 // Export data as JSON
 function exportData() {
+  if (!isLoggedIn) {
+    alert('⚠️ Please login as admin to export data!');
+    return;
+  }
+  
   const dataStr = JSON.stringify(workEntries, null, 2);
   const dataBlob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(dataBlob);
@@ -280,6 +404,11 @@ function exportData() {
 
 // Clear all data
 function clearAllData() {
+  if (!isLoggedIn) {
+    alert('⚠️ Please login as admin to clear data!');
+    return;
+  }
+  
   if (confirm('⚠️ Are you SURE you want to delete ALL work entries? This cannot be undone!')) {
     if (confirm('⚠️ FINAL WARNING: This will permanently delete all data!')) {
       workEntries = [];

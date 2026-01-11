@@ -247,9 +247,23 @@
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div class="bg-white rounded-lg shadow-lg p-6">
-        <h3 class="text-gray-600 text-sm font-semibold uppercase">Total Hours This Week</h3>
-        <p class="text-4xl font-bold text-blue-600 mt-2" id="totalWeekHours">0</p>
+      <!-- 2-Week Period Card with Employee Breakdown -->
+      <div class="bg-white rounded-lg shadow-lg p-6 md:col-span-2">
+        <h3 class="text-gray-600 text-sm font-semibold uppercase mb-3">Total Hours (2 Weeks)</h3>
+        <div class="mb-3">
+          <label class="block text-xs text-gray-500 mb-1">Select Period Start (Monday):</label>
+          <input type="date" id="twoWeekStartCard" class="w-full border rounded p-2 text-sm" onchange="calculate2WeekStatsCard()">
+        </div>
+        <p class="text-4xl font-bold text-blue-600 mb-1" id="total2WeekHoursCard">0.00</p>
+        <p class="text-xs text-gray-500 mb-4" id="dateRangeDisplay">Select start date</p>
+        
+        <!-- Employee Breakdown -->
+        <div class="border-t pt-3">
+          <h4 class="text-xs font-semibold text-gray-600 uppercase mb-2">👥 Employee Hours:</h4>
+          <div class="grid grid-cols-2 gap-2" id="employeeBreakdownCard">
+            <!-- Populated by JavaScript -->
+          </div>
+        </div>
       </div>
       
       <div class="bg-white rounded-lg shadow-lg p-6">
@@ -283,30 +297,4 @@
               <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Notes</th>
               <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
             </tr>
-          </thead>
-          <tbody id="entriesTable" class="divide-y divide-gray-200">
-            <!-- Data populated by JavaScript -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Employee Summary -->
-    <div class="mt-6 bg-white rounded-lg shadow-lg p-6">
-      <h2 class="text-xl font-bold mb-4">👥 Employee Summary</h2>
-      <div id="employeeSummary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Populated by JavaScript -->
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-white text-center py-6 mt-12">
-    <p>&copy; 2025 CIF Canada. All rights reserved.</p>
-    <p class="text-sm text-gray-400 mt-2">Work Time Tracking System</p>
-  </footer>
-
-  <script src="app.js"></script>
-</body>
-</html>
+       

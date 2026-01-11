@@ -15,7 +15,6 @@ const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Sat
 document.addEventListener('DOMContentLoaded', function() {
   checkLoginStatus();
   setDefaultWeekStart();
-  setLast2Weeks(); // Set default 2-week period
   setLast2WeeksCard(); // Set default for stats card
   loadData();
   updateStatistics();
@@ -67,78 +66,28 @@ function calculate2WeekStatsCard() {
   const startFormatted = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const endFormatted = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   document.getElementById('dateRangeDisplay').textContent = `${startFormatted} - ${endFormatted}`;
-}
-
-// Set last 2 weeks as default
-function setLast2Weeks() {
-  const today = new Date();
-  
-  // Get last Monday (start of current or last week)
-  const lastMonday = new Date(today);
-  const day = lastMonday.getDay();
-  const diff = lastMonday.getDate() - day + (day === 0 ? -6 : 1);
-  lastMonday.setDate(diff - 7); // Go back one week to get last Monday
-  
-  // Calculate end date (13 days later = 2 weeks Sunday)
-  const endDate = new Date(lastMonday);
-  endDate.setDate(lastMonday.getDate() + 13); // 2 weeks = 14 days (0-13)
-  
-  document.getElementById('twoWeekStart').value = lastMonday.toISOString().split('T')[0];
-  document.getElementById('twoWeekEnd').value = endDate.toISOString().split('T')[0];
-  
-  calculate2WeekStats();
-}
-
-// Calculate 2-week statistics
-function calculate2WeekStats() {
-  const startDateStr = document.getElementById('twoWeekStart').value;
-  
-  if (!startDateStr) {
-    return;
-  }
-  
-  const startDate = new Date(startDateStr + 'T00:00:00');
-  
-  // Calculate end date (13 days later for 2 full weeks including both weekends)
-  const endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + 13);
-  
-  // Update end date display
-  document.getElementById('twoWeekEnd').value = endDate.toISOString().split('T')[0];
-  
-  // Filter entries within 2-week period
-  const startDateOnly = startDateStr;
-  const endDateStr = endDate.toISOString().split('T')[0];
-  
-  const twoWeekEntries = workEntries.filter(entry => {
-    return entry.date >= startDateOnly && entry.date <= endDateStr;
-  });
-  
-  // Calculate total hours
-  const totalHours = twoWeekEntries.reduce((sum, entry) => sum + entry.hours, 0);
-  
-  // Calculate average per employee
-  const employees = ['Ali', 'Layla', 'Ali Fadlallah', 'Khodor', 'Hadi', 'Manager'];
-  const avgHours = totalHours / employees.length;
-  
-  // Update display
-  document.getElementById('total2WeekHours').textContent = totalHours.toFixed(2);
-  document.getElementById('avg2WeekHours').textContent = avgHours.toFixed(2);
   
   // Update employee breakdown
-  updateTwoWeekBreakdown(twoWeekEntries, employees);
-}
-
-// Update 2-week employee breakdown
-function updateTwoWeekBreakdown(entries, employees) {
-  const breakdown = document.getElementById('twoWeekEmployeeBreakdown');
+  const employees = ['Ali', 'Layla', 'Ali Fadlallah', 'Khodor', 'Hadi', 'Manager'];
+  const breakdownDiv = document.getElementById('employeeBreakdownCard');
   
-  const html = employees.map(emp => {
-    const empEntries = entries.filter(e => e.employee === emp);
-    const totalHours = empEntries.reduce((sum, e) => sum + e.hours, 0);
+  const breakdownHTML = employees.map(emp => {
+    const empEntries = twoWeekEntries.filter(e => e.employee === emp);
+    const empHours = empEntries.reduce((sum, e) => sum + e.hours, 0);
     const daysWorked = empEntries.length;
     
     return `
+      <div class="bg-blue-50 rounded p-2 border border-blue-200">
+        <p class="text-xs font-semibold text-gray-700">${emp}</p>
+        <p class="text-lg font-bold text-blue-600">${empHours.toFixed(1)}h</p>
+        <p class="text-xs text-gray-500">${daysWorked} days</p>
+      </div>
+    `;
+  }).join('');
+  
+  breakdownDiv.innerHTML = breakdownHTML;
+}
+
       <div class="bg-white bg-opacity-25 backdrop-blur rounded-lg p-3 text-center border border-white">
         <p class="text-sm font-semibold mb-1">${emp}</p>
         <p class="text-2xl font-bold">${totalHours.toFixed(1)}h</p>
@@ -307,7 +256,6 @@ function addWeeklyEntry() {
   // Reload display
   loadData();
   updateStatistics();
-  calculate2WeekStats(); // Update 2-week view
   calculate2WeekStatsCard(); // Update stats card
   
   // Clear form
@@ -453,7 +401,6 @@ function deleteEntry(id) {
     saveData();
     loadData();
     updateStatistics();
-    calculate2WeekStats(); // Update 2-week view
     calculate2WeekStatsCard(); // Update stats card
     alert('✅ Entry deleted!');
   }
@@ -550,7 +497,6 @@ function clearAllData() {
       saveData();
       loadData();
       updateStatistics();
-      calculate2WeekStats(); // Update 2-week view
       calculate2WeekStatsCard(); // Update stats card
       alert('✅ All data cleared!');
     }

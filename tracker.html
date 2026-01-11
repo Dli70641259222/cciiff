@@ -47,52 +47,6 @@
       </button>
     </div>
 
-    <!-- 2-Week Period Selector -->
-    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg shadow-lg p-6 mb-6">
-      <h2 class="text-2xl font-bold mb-4 text-center">📅 2-Week Period View</h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div>
-          <label class="block text-sm font-semibold mb-2">Start Date (Week 1 - Monday)</label>
-          <input type="date" id="twoWeekStart" class="w-full border rounded-lg p-3 text-gray-900" onchange="calculate2WeekStats()">
-        </div>
-        
-        <div>
-          <label class="block text-sm font-semibold mb-2">End Date (Week 2 - Sunday)</label>
-          <input type="date" id="twoWeekEnd" class="w-full border rounded-lg p-3 text-gray-900" readonly>
-        </div>
-        
-        <div>
-          <button onclick="setLast2Weeks()" class="w-full bg-white text-purple-600 font-bold px-6 py-3 rounded-lg shadow hover:bg-gray-100">
-            📆 Load Last 2 Weeks
-          </button>
-        </div>
-      </div>
-
-      <!-- 2-Week Statistics -->
-      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white bg-opacity-20 backdrop-blur rounded-lg p-6 border-2 border-white">
-          <h3 class="text-sm font-semibold uppercase mb-2">Total Hours (2 Weeks)</h3>
-          <p class="text-5xl font-bold" id="total2WeekHours">0.00</p>
-          <p class="text-sm mt-2 opacity-90">All employees combined</p>
-        </div>
-        
-        <div class="bg-white bg-opacity-20 backdrop-blur rounded-lg p-6 border-2 border-white">
-          <h3 class="text-sm font-semibold uppercase mb-2">Average Hours per Employee</h3>
-          <p class="text-5xl font-bold" id="avg2WeekHours">0.00</p>
-          <p class="text-sm mt-2 opacity-90">Per employee in 2 weeks</p>
-        </div>
-      </div>
-
-      <!-- Employee Breakdown for 2 Weeks -->
-      <div class="mt-6">
-        <h3 class="text-lg font-bold mb-3">👥 Employee Hours (2-Week Period)</h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3" id="twoWeekEmployeeBreakdown">
-          <!-- Populated by JavaScript -->
-        </div>
-      </div>
-    </div>
-
     <!-- Admin Panel (Hidden by default) -->
     <div id="adminPanel" class="hidden mb-6 bg-white rounded-lg shadow-lg p-6">
       <h2 class="text-2xl font-bold mb-6 text-center">📝 Add Weekly Work Entry</h2>
@@ -293,15 +247,9 @@
 
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <!-- 2-Week Period Card -->
       <div class="bg-white rounded-lg shadow-lg p-6">
-        <h3 class="text-gray-600 text-sm font-semibold uppercase mb-3">Total Hours (2 Weeks)</h3>
-        <div class="mb-3">
-          <label class="block text-xs text-gray-500 mb-1">Select Period Start:</label>
-          <input type="date" id="twoWeekStartCard" class="w-full border rounded p-2 text-sm" onchange="calculate2WeekStatsCard()">
-        </div>
-        <p class="text-4xl font-bold text-blue-600" id="total2WeekHoursCard">0.00</p>
-        <p class="text-xs text-gray-500 mt-2" id="dateRangeDisplay">Select start date</p>
+        <h3 class="text-gray-600 text-sm font-semibold uppercase">Total Hours This Week</h3>
+        <p class="text-4xl font-bold text-blue-600 mt-2" id="totalWeekHours">0</p>
       </div>
       
       <div class="bg-white rounded-lg shadow-lg p-6">
